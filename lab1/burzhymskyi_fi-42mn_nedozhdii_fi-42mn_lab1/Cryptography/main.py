@@ -1,6 +1,6 @@
 import random
 import string
-from cryptography.hazmat.primitives import hashes
+from Crypto.Hash import SHA256 as hashes
 import time
 
 def generate_random_strings(num_strings=1000000):
@@ -13,9 +13,9 @@ def generate_random_strings(num_strings=1000000):
 def hash_strings_to_bytes(string_list):
     byte_objects = []
     for s in string_list:
-        digest = hashes.Hash(hashes.SHA256())
-        digest.update(s.encode('utf-8'))
-        byte_objects.append(digest.finalize())
+        d = hashes.new()
+        d.update(s.encode('utf-8'))
+        byte_objects.append(d.digest())
     return byte_objects
 
 def measure_hashing_time(string_list):
