@@ -3,7 +3,10 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <openssl/dsa.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/pem.h>
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 #include <random>
@@ -120,6 +123,7 @@ std::string decryptChaCha20(const std::string &ciphertext,
   EVP_CIPHER_CTX_free(ctx);
   return plaintext;
 }
+
 void testChaCha20(const std::vector<std::string> &input) {
 
   unsigned char key[CHACHA20_KEY_SIZE];
@@ -127,7 +131,6 @@ void testChaCha20(const std::vector<std::string> &input) {
   generateRandomBytes(key, CHACHA20_KEY_SIZE);
   generateRandomBytes(nonce, CHACHA20_NONCE_SIZE);
 
-  // Encrypt the plaintext
   int count = input.size();
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -145,17 +148,95 @@ void testChaCha20(const std::vector<std::string> &input) {
             << " microseconds" << std::endl;
 }
 
-void testDSA() {}
+DSA *generateDSAKeys() {
+  DSA *dsa = DSA_new();
+  if (!dsa) {
+    std::cerr << "Failed to create DSA structure" << std::endl;
+    return nullptr;
+  }
+
+  // Generate parameters and keys
+  if (DSA_generate_parameters_ex(dsa, 2048, nullptr, 0, nullptr, nullptr,
+                                 nullptr) != 1 ||
+      DSA_generate_key(dsa) != 1) {
+    std::cerr << "Failed to generate DSA keys: "
+              << ERR_error_string(ERR_get_error(), nullptr) << std::endl;
+    DSA_free(dsa);
+    return nullptr;
+  }
+
+  return dsa;
+}
+
+std::string signMessage(DSA *dsa, const std::string &message) {
+  unsigned int sig_len = 0;
+  unsigned char *sig = new unsigned char[DSA_size(dsa)];
+  if (DSA_sign(0, reinterpret_cast<const unsigned char *>(message.c_str()),
+               message.size(), sig, &sig_len, dsa) != 1) {
+    std::cerr << "Signing failed: "
+              << ERR_error_string(ERR_get_error(), nullptr) << std::endl;
+    delete[] sig;
+    return "";
+  }
+
+  std::string signature(reinterpret_cast<char *>(sig), sig_len);
+  delete[] sig;
+  return signature;
+}
+
+// Function to verify a signature
+bool verifySignature(DSA *dsa, const std::string &message,
+                     const std::string &signature) {
+  int result =
+      DSA_verify(0, reinterpret_cast<const unsigned char *>(message.c_str()),
+                 message.size(),
+                 reinterpret_cast<const unsigned char *>(signature.c_str()),
+                 signature.size(), dsa);
+  return result == 1;
+}
+
+// Helper function to handle OpenSSL errors
+void handleErrors() { ERR_print_errors_fp(stderr); }
+
+void testDSA(DSA *dsa) {
+  size_t count = 10000;
+  std::vector<std::string> input = generateStringsInRange(count);
+  auto start = std::chrono::high_resolution_clock::now();
+
+  for (int i = 0; i < count; ++i) {
+    std::string signature = signMessage(dsa, input[i]);
+    verifySignature(dsa, input[i], signature);
+  }
+
+  auto end = std::chrono::high_resolution_clock::now();
+
+  auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+  std::cout << "Execution time: " << duration.count() / (double)1000000
+            << " microseconds" << std::endl;
+}
 
 int main() {
+
+  ERR_load_crypto_strings();
+
+  DSA *dsa = generateDSAKeys();
+  if (!dsa) {
+    handleErrors();
+    return 1;
+  }
 
   size_t count = 1000000;
   std::vector<std::string> input = generateStringsInRange(count);
 
   std::cout << "end generation";
   testChaCha20(input);
-  testDSA();
+  testDSA(dsa);
   testSHA256(input);
+
+  DSA_free(dsa);
+  ERR_free_strings();
 
   return 0;
 }
