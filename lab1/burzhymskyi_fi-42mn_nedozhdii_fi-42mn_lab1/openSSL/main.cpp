@@ -155,7 +155,6 @@ DSA *generateDSAKeys() {
     return nullptr;
   }
 
-  // Generate parameters and keys
   if (DSA_generate_parameters_ex(dsa, 2048, nullptr, 0, nullptr, nullptr,
                                  nullptr) != 1 ||
       DSA_generate_key(dsa) != 1) {
@@ -184,7 +183,6 @@ std::string signMessage(DSA *dsa, const std::string &message) {
   return signature;
 }
 
-// Function to verify a signature
 bool verifySignature(DSA *dsa, const std::string &message,
                      const std::string &signature) {
   int result =
@@ -195,7 +193,6 @@ bool verifySignature(DSA *dsa, const std::string &message,
   return result == 1;
 }
 
-// Helper function to handle OpenSSL errors
 void handleErrors() { ERR_print_errors_fp(stderr); }
 
 void testDSA(DSA *dsa) {
@@ -221,19 +218,34 @@ int main() {
 
   ERR_load_crypto_strings();
 
+  size_t count = 1000000;
+  std::vector<std::string> input = generateStringsInRange(count);
+
+  std::cout << "end generation\n";
+  std::cout << "SHA256:\n";
+  testSHA256(input);
+
+  std::cout << "ChaCha20:\n";
+  testChaCha20(input);
+
+  std::cout << "DSA:\n";
+  auto start = std::chrono::high_resolution_clock::now();
+
   DSA *dsa = generateDSAKeys();
   if (!dsa) {
     handleErrors();
     return 1;
   }
 
-  size_t count = 1000000;
-  std::vector<std::string> input = generateStringsInRange(count);
+  auto end = std::chrono::high_resolution_clock::now();
 
-  std::cout << "end generation";
-  testChaCha20(input);
+  auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+  std::cout << "DSA keygen time: " << duration.count() / (double)1000000
+            << " microseconds" << std::endl;
+
   testDSA(dsa);
-  testSHA256(input);
 
   DSA_free(dsa);
   ERR_free_strings();
