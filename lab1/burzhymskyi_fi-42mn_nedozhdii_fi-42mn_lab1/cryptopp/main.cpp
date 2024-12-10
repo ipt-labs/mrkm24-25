@@ -137,7 +137,7 @@ void testChaCha20(const std::vector<std::string> &input) {
 void GenerateKeys(DSA::PrivateKey &privateKey, DSA::PublicKey &publicKey) {
   AutoSeededRandomPool rng;
 
-  privateKey.GenerateRandomWithKeySize(rng, 1024);
+  privateKey.GenerateRandomWithKeySize(rng, 2048);
 
   privateKey.MakePublicKey(publicKey);
 }
