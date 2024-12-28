@@ -63,28 +63,37 @@ def compare_random_and_rsa(size, key_size):
         size (int): The number of bytes for random data generation.
         key_size (int): The size of the RSA key to generate (in bits).
     """
-    print('\n--- Testing Random Byte Generation ---')
+    # Random byte generation test
+    print(f"\n{'=' * 40}\nTesting Random Byte Generation ({size} bytes):")
     random_bytes, random_time = generate_random_bytes(size)
     random_entropy = calculate_entropy(random_bytes)
+    print(f'• Generation Time: {random_time:.6f} seconds')
+    print(f'• Entropy: {random_entropy:.6f} bits per byte')
+    print(str('-' * 40))
 
-    print('\n--- Testing RSA Key Generation ---')
+    # RSA key generation test
+    print(f"\n{'=' * 40}\nTesting RSA Key Generation ({key_size}-bit):")
     rsa_key, rsa_time = generate_rsa_keypair(key_size)
     rsa_public_key = rsa_key.public_key().public_bytes(
         encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-
-    print('\n--- Comparison Results ---')
-    print(f'Random Bytes Generation (Size: {size} bytes):')
-    print(f'  Time Taken: {random_time:.10f} seconds')
-    print(f'  Entropy: {random_entropy:.10f} bits per byte')
-
-    print(f'\nRSA Key Generation ({key_size}-bit):')
-    print(f'  Time Taken: {rsa_time:.10f} seconds')
-    print(f'  Public Key Length: {len(rsa_public_key)} bytes')
-    print(f'  Public Key:\n{rsa_public_key.decode()}')
-
     rsa_key_entropy = calculate_entropy(rsa_public_key)
-    print(f'  Public Key Entropy: {rsa_key_entropy:.10f} bits per byte')
+
+    print(f'• Generation Time: {rsa_time:.6f} seconds')
+    print(f'• Public Key Length: {len(rsa_public_key)} bytes')
+    print(f'• Public Key Entropy: {rsa_key_entropy:.6f} bits per byte')
+    print(str('-' * 40))
+
+    # Final summary and comparison
+    print(f"\n{'=' * 40}\nSummary Comparison:")
+    print('Random Byte Generation:')
+    print(f'  - Time: {random_time:.6f} seconds')
+    print(f'  - Entropy: {random_entropy:.6f} bits per byte')
+    print(f'\nRSA Key Generation ({key_size}-bit):')
+    print(f'  - Time: {rsa_time:.6f} seconds')
+    print(f'  - Key Length: {len(rsa_public_key)} bytes')
+    print(f'  - Entropy: {rsa_key_entropy:.6f} bits per byte')
+    print(str('=' * 40))
 
 
 # Example usage of the comparison function
