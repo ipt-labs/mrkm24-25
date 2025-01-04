@@ -39,14 +39,17 @@ public class CryptoTerminal {
                         System.out.println("Помилка при ініціалізації ключа: " + e.getMessage());
                     }
                 } else {
-                    System.out.print("Введіть пароль: ");
-                    String password = scanner.nextLine();
+                    boolean correctPassword = false;
+                    while (!correctPassword) {
+                        System.out.print("Введіть пароль: ");
+                        String password = scanner.nextLine();
 
-                    if (!CryptoUtils.checkPassword(currentUser, password)) {
-                        System.out.println("Невірний пароль! Спробуйте знову.");
-                        continue;
-                    } else {
-                        System.out.println("Вхід успішний.");
+                        if (!CryptoUtils.checkPassword(currentUser, password)) {
+                            System.out.println("Невірний пароль! Спробуйте знову.");
+                        } else {
+                            System.out.println("Вхід успішний.");
+                            correctPassword = true;
+                        }
                     }
                 }
             }
