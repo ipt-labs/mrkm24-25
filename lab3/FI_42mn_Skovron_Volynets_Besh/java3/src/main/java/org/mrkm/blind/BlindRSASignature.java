@@ -42,8 +42,8 @@ public class BlindRSASignature {
     private static BigInteger[] generateRSAKeys(final int bitLength) {
         final BigInteger p = new BigInteger(bitLength, 100, RANDOM);
         final BigInteger q = new BigInteger(bitLength, 100, RANDOM);
-        final BigInteger n = p.multiply(q);  // n = p * q
-        BigInteger e = new BigInteger("10001", 16);  // Public exponent
+        final BigInteger n = p.multiply(q);
+        BigInteger e = new BigInteger("10001", 16);
         final BigInteger phiN = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));  // Euler's Totient
 
         while (e.gcd(phiN).compareTo(BigInteger.ONE) != 0) {
@@ -58,7 +58,7 @@ public class BlindRSASignature {
     private static BigInteger generateBlindingFactor(final BigInteger n) {
         BigInteger r;
         do {
-            r = new BigInteger(256, RANDOM);  // Generate a random r
+            r = new BigInteger(256, RANDOM);
         } while (r.compareTo(BigInteger.ONE) <= 0 || r.compareTo(n) >= 0 || r.gcd(n).compareTo(BigInteger.ONE) != 0);
         System.out.println("Generated blinding factor r: " + r);
         return r;
@@ -69,7 +69,7 @@ public class BlindRSASignature {
     }
 
     private static BigInteger signBlindedMessage(final BigInteger blindedMsg, final BigInteger d, final BigInteger n) {
-        return blindedMsg.modPow(d, n);  // Signature of the blinded message
+        return blindedMsg.modPow(d, n);
     }
 
     private static BigInteger unblindSignature(final BigInteger signedBlindedMsg, final BigInteger r, final BigInteger n) {
@@ -77,8 +77,8 @@ public class BlindRSASignature {
     }
 
     private static boolean verifySignature(final BigInteger signature, final BigInteger e, final BigInteger n, final BigInteger msg) {
-        final BigInteger leftSide = signature.modPow(e, n);  // s^e mod n
-        final BigInteger rightSide = msg.mod(n);  // msg mod n
+        final BigInteger leftSide = signature.modPow(e, n);
+        final BigInteger rightSide = msg.mod(n);
 
         return leftSide.compareTo(rightSide) == 0;
     }
