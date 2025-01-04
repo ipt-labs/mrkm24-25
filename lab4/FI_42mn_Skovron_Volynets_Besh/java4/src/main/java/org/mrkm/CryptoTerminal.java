@@ -31,6 +31,13 @@ public class CryptoTerminal {
 
                     CryptoUtils.setPassword(currentUser, password);
                     System.out.println("Пароль встановлено успішно.");
+
+                    try {
+                        CryptoUtils.initKey(currentUser, 128);
+                        System.out.println("Ключ для AES 128 біт успішно згенеровано за замовчуванням.");
+                    } catch (Exception e) {
+                        System.out.println("Помилка при ініціалізації ключа: " + e.getMessage());
+                    }
                 } else {
                     System.out.print("Введіть пароль: ");
                     String password = scanner.nextLine();
